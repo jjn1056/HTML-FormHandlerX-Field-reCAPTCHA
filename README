@@ -1,0 +1,23 @@
+NAME
+    HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field
+
+DESCRIPTION
+    Uses Captcha::reCAPTCHA to add a "Check if the agent is human" field.
+
+SEE ALSO
+    The following modules or resources may be of interest.
+
+    HTML::FormHandler, Captch::reCAPTCHA
+
+AUTHOR
+    John Napiorkowski "<jjnapiork@cpan.org>"
+
+COPYRIGHT & LICENSE
+    Copyright 2010, John Napiorkowski "<jjnapiork@cpan.org>"
+
+    Original work sponsered by Shutterstock, LLC. <<a
+    href="http://shutterstock.com/">http://shutterstock.com</a>>
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
