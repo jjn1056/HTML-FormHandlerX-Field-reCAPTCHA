@@ -7,7 +7,6 @@ extends 'HTML::FormHandler::Field';
 our $VERSION = '0.01';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
-
 has '+widget' => ( default => 'recaptcha' );
 
 has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', required=>1);
@@ -16,7 +15,7 @@ has 'remote_address' => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'recaptcha_options' => (is=>'rw', isa=>'HashRef', required=>1, default=>sub{ +{} });
 has 'recaptcha_message' => (is=>'rw', isa=>'Str', default=>'Error validating reCAPTCHA');
 has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
-has 'security_salt' => (is=>'ro', required=>1, default=>01232005);
+has 'security_salt' => (is=>'ro', required=>1, isa=>'CodeRef', default=>sub {01232005});
 
 sub _build_remote_address {
     $ENV{REMOTE_ADDR};
@@ -59,16 +58,23 @@ sub validate {
     my ($self, @rest) = @_;
     return unless $self->SUPER::validate;
 
-    my @args = $self->prepare_private_recaptcha_args;
+    my $security_salt = $self->security_salt->($self->parent->form, $self);
     if($self->form->params->{'recaptcha_already_validated'}) {
-        return 1;
+        if( $self->form->params->{'recaptcha_response_field'} &&
+          ($self->form->params->{'recaptcha_response_field'} eq $security_salt)
+        ) {
+            return 1;
+        } else {
+            $self->add_error("Previous reCAPTCHA validation lost.");
+            return undef;
+        }
     } else {
+        my @args = $self->prepare_private_recaptcha_args;
         my $result = $self->recaptcha_instance->check_answer(@args);
         if($result->{is_valid}) {
             return 1;
         } else {
             $self->add_error($self->recaptcha_message);
-            ## $self->add_error($result->{error});
             return undef;
         }
     }
@@ -76,11 +82,50 @@ sub validate {
 
 =head1 NAME
 
-HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field 
+HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field
+
+=head1 SYNOPSIS
+
+The following is example usage
+
+    has 'security_salt' => (is=>'ro', required=>1, isa=>'Str');
+    has_field 'recaptcha' => (
+        type=>'reCAPTCHA', 
+        public_key=>'[YOUR PUBLIC KEY]',
+        private_key=>'[YOUR PRIVATE KEY]',
+        security_salt=>sub {
+            my ($self, $field) = @_;
+            return $self->security_salt;
+        },
+        required=>1,
+    ); 
 
 =head1 DESCRIPTION
 
-Uses L<Captcha::reCAPTCHA> to add a "Check if the agent is human" field.
+Uses L<Captcha::reCAPTCHA> to add a "Check if the agent is human" field.  You 
+will need an account from http://recaptcha.net/ to make this work.
+
+=head1 FIELD OPTIONS
+
+We support the following additional field options, over what is inherited from
+L<HTML::FormHandler::Field>
+
+=head2 public_key
+
+The public key you get when you create an account on http://recaptcha.net/
+
+=head2 private_key
+
+The private key you get when you create an account on http://recaptcha.net/
+
+=head2 security_salt
+
+Sometimes your user may properly validate recaptcha, but input an invald an
+response to some other field.  Accordingly, we support the idea that once the
+reCAPTCHA is validated, you can supply a private 'salt' which makes the field
+as valid for a certain set of requests.  You need to manage this in the code
+that is calling the form object.  See the SYNOPSIS example for an easy way to
+do this in L<Catalyst> with L<Catalyst::Plugin::Session> install.
 
 =head1 SEE ALSO
 

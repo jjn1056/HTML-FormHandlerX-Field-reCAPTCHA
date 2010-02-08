@@ -7,7 +7,7 @@ sub render {
     $result ||= $self->result;
 
     if($self->validated) {
-        my $security_salt = $self->security_salt;
+        my $security_salt = $self->security_salt->($self->parent->form, $self);
         return <<"END";
         <input type='hidden' name='recaptcha_response_field' value='$security_salt' />
         <input type='hidden' name='recaptcha_already_validated' value='1' />
