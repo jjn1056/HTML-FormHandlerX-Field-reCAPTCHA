@@ -17,6 +17,18 @@ has 'remote_address' => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'recaptcha_options' => (is=>'rw', isa=>'HashRef', required=>1, default=>sub{ +{} });
 has 'recaptcha_message' => (is=>'rw', isa=>'Str', default=>'Error validating reCAPTCHA');
 has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
+has 'security_code' => (is=>'rw', init_arg=>undef, lazy_build=>1);
+
+sub _build_security_code {
+    my $self = shift @_;
+    my $form = $self->form;
+    my $method_name = 'valid_'.$self->name.'_security_code';
+    if($form->can($method_name)) {
+        return $form->$method_name;
+    } else {
+        return '01232005';
+    }
+}
 
 sub _build_remote_address {
     $ENV{REMOTE_ADDR};
@@ -53,15 +65,29 @@ sub prepare_recaptcha_args {
 
 sub validate {
     my ($self, @rest) = @_;
-    return unless $self->SUPER::validate;warn "2222222\n\n";
-
-    my @args = $self->prepare_private_recaptcha_args;
-    my $result = $self->recaptcha_instance->check_answer(@args);
-    if($result->{is_valid}) {
-        return 1;
+    unless(my $super = $self->SUPER::validate) {
+        return $super;
+    }
+    my $security_code = $self->security_code;
+    if($self->form->params->{'recaptcha_already_validated'}) {
+        if( $self->form->params->{'recaptcha_response_field'} &&
+          ($self->form->params->{'recaptcha_response_field'} eq $security_code)
+        ) { 
+            return 1;
+        } else {
+            $self->add_error("Previous reCAPTCHA validation lost.");
+            return undef;
+        }
     } else {
-        $self->add_error($self->recaptcha_message);
-        return undef;
+        my @args = $self->prepare_private_recaptcha_args;
+        my $result = $self->recaptcha_instance->check_answer(@args);
+        if($result->{is_valid}) {
+            return 1;
+        } else {
+            $self->{recaptcha_error} = $result->{error};
+            $self->add_error($self->recaptcha_message);
+            return undef;
+        }
     }
 }
 
@@ -75,6 +101,11 @@ The following is example usage.
 
 In your L<HTML::FormHandler> subclass:
 
+    has 'valid_recaptcha_security_code' => (
+        is=>'rw',
+        required=>1,
+    );
+
     has_field 'recaptcha' => (
         type=>'reCAPTCHA', 
         public_key=>'[YOUR PUBLIC KEY]',
@@ -83,6 +114,11 @@ In your L<HTML::FormHandler> subclass:
     ); 
 
 Example L<Catalyst> controller:
+
+    ## Probably not the most secure code :)
+    my $form = MyApp::HTML::Forms::MyForm->new(
+      valid_recaptcha_security_code=>$c->session_id,
+    );
 
     my $params = $c->request->body_parameters;
     if(my $result = $form->process(params=>$params) {
@@ -108,6 +144,17 @@ The public key you get when you create an account on http://recaptcha.net/
 =head2 private_key
 
 The private key you get when you create an account on http://recaptcha.net/
+
+=head1 FORM ATTRIBUTES
+
+We support the following form attributes
+
+=head2 valid_recaptcha_security_code
+
+Expects a value.  The idea here is that if your client validates the reCAPTCHA
+but makes some other error, you don't want to keep displaying the reCAPTCHA.  So
+the first time a form validates the reCAPTCHA we replace it with a hidden field
+whose value is a secure code you can control.
 
 =head1 SEE ALSO
 
