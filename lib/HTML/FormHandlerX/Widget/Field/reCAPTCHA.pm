@@ -1,4 +1,4 @@
-package HTML::FormHandler::Widget::Field::reCAPTCHA;
+package HTML::FormHandlerX::Widget::Field::reCAPTCHA;
 
 use Moose::Role;
 

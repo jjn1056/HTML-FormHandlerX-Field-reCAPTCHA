@@ -1,4 +1,4 @@
-package HTML::FormHandler::Field::reCAPTCHA;
+package HTML::FormHandlerX::Field::reCAPTCHA;
 
 use 5.008;
 use Moose;
@@ -7,7 +7,7 @@ extends 'HTML::FormHandler::Field';
 our $VERSION = '0.01';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
-has '+widget' => ( default => 'recaptcha' );
+has '+widget' => ( default => 'reCAPTCHA' );
 
 has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', required=>1);
 has 'use_ssl' => (is=>'rw', isa=>'Bool', required=>1, default=>0);
