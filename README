@@ -6,6 +6,11 @@ SYNOPSIS
 
     In your HTML::FormHandler subclass:
 
+        has 'valid_recaptcha_security_code' => (
+            is=>'rw',
+            required=>1,
+        );
+
         has_field 'recaptcha' => (
             type=>'reCAPTCHA', 
             public_key=>'[YOUR PUBLIC KEY]',
@@ -14,6 +19,11 @@ SYNOPSIS
         );
 
     Example Catalyst controller:
+
+        ## Probably not the most secure code :)
+        my $form = MyApp::HTML::Forms::MyForm->new(
+          valid_recaptcha_security_code=>$c->session_id,
+        );
 
         my $params = $c->request->body_parameters;
         if(my $result = $form->process(params=>$params) {
@@ -37,6 +47,16 @@ FIELD OPTIONS
   private_key
     The private key you get when you create an account on
     http://recaptcha.net/
+
+FORM ATTRIBUTES
+    We support the following form attributes
+
+  valid_recaptcha_security_code
+    Expects a value. The idea here is that if your client validates the
+    reCAPTCHA but makes some other error, you don't want to keep displaying
+    the reCAPTCHA. So the first time a form validates the reCAPTCHA we
+    replace it with a hidden field whose value is a secure code you can
+    control.
 
 SEE ALSO
     The following modules or resources may be of interest.
