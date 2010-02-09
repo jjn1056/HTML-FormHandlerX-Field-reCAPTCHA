@@ -1,6 +1,7 @@
 package HTML::FormHandlerX::Field::reCAPTCHA;
 
 use 5.008;
+use Captcha::reCAPTCHA;
 use Moose;
 extends 'HTML::FormHandler::Field';
 
@@ -8,6 +9,7 @@ our $VERSION = '0.01';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
 has '+widget' => ( default => 'reCAPTCHA' );
+has '+input_param' => ( default => 'recaptcha_response_field' );
 
 has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', required=>1);
 has 'use_ssl' => (is=>'rw', isa=>'Bool', required=>1, default=>0);
@@ -18,10 +20,6 @@ has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
 
 sub _build_remote_address {
     $ENV{REMOTE_ADDR};
-}
-
-sub _build_input_param {
-    return 'recaptcha_response_field';
 }
 
 sub _build_recaptcha_instance {
@@ -55,7 +53,7 @@ sub prepare_recaptcha_args {
 
 sub validate {
     my ($self, @rest) = @_;
-    return unless $self->SUPER::validate;
+    return unless $self->SUPER::validate;warn "2222222\n\n";
 
     my @args = $self->prepare_private_recaptcha_args;
     my $result = $self->recaptcha_instance->check_answer(@args);
