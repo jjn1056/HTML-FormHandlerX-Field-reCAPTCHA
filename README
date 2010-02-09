@@ -1,8 +1,42 @@
 NAME
     HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field
 
+SYNOPSIS
+    The following is example usage.
+
+    In your HTML::FormHandler subclass:
+
+        has_field 'recaptcha' => (
+            type=>'reCAPTCHA', 
+            public_key=>'[YOUR PUBLIC KEY]',
+            private_key=>'[YOUR PRIVATE KEY]',
+            required=>1,
+        );
+
+    Example Catalyst controller:
+
+        my $params = $c->request->body_parameters;
+        if(my $result = $form->process(params=>$params) {
+            ## The Form is totally valid. Go ahead with whatever is next.
+        } else {
+            ## Invalid results, you need to display errors and try again.
+        }
+
 DESCRIPTION
     Uses Captcha::reCAPTCHA to add a "Check if the agent is human" field.
+    You will need an account from http://recaptcha.net/ to make this work.
+
+FIELD OPTIONS
+    We support the following additional field options, over what is
+    inherited from HTML::FormHandler::Field
+
+  public_key
+    The public key you get when you create an account on
+    http://recaptcha.net/
+
+  private_key
+    The private key you get when you create an account on
+    http://recaptcha.net/
 
 SEE ALSO
     The following modules or resources may be of interest.
