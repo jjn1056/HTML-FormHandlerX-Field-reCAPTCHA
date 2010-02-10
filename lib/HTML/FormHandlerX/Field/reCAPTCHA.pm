@@ -2,6 +2,8 @@ package HTML::FormHandlerX::Field::reCAPTCHA;
 
 use 5.008;
 use Captcha::reCAPTCHA;
+use Crypt::CBC;
+
 use Moose;
 extends 'HTML::FormHandler::Field';
 
@@ -17,17 +19,13 @@ has 'remote_address' => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'recaptcha_options' => (is=>'rw', isa=>'HashRef', required=>1, default=>sub{ +{} });
 has 'recaptcha_message' => (is=>'rw', isa=>'Str', default=>'Error validating reCAPTCHA');
 has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
-has 'security_code' => (is=>'rw', init_arg=>undef, lazy_build=>1);
+has 'encrypter' => (is=>'ro', init_arg=>undef, lazy_build=>1,
+  handles=>[qw/encrypt_hex decrypt_hex/]);
 
-sub _build_security_code {
+sub _build_encrypter {
     my $self = shift @_;
-    my $form = $self->form;
-    my $method_name = 'valid_'.$self->name.'_security_code';
-    if($form->can($method_name)) {
-        return $form->$method_name;
-    } else {
-        return '01232005';
-    }
+    my $key = pack("H16",$self->private_key);
+    return Crypt::CBC->new(-key=>$key,-cipher=>"Blowfish");   
 }
 
 sub _build_remote_address {
@@ -68,10 +66,10 @@ sub validate {
     unless(my $super = $self->SUPER::validate) {
         return $super;
     }
-    my $security_code = $self->security_code;
+    my $recaptcha_response_field = $self->form->params->{'recaptcha_response_field'};
     if($self->form->params->{'recaptcha_already_validated'}) {
-        if( $self->form->params->{'recaptcha_response_field'} &&
-          ($self->form->params->{'recaptcha_response_field'} eq $security_code)
+        if($recaptcha_response_field &&
+          ($self->decrypt_hex($recaptcha_response_field) eq $self->public_key)
         ) { 
             return 1;
         } else {

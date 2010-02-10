@@ -12,7 +12,7 @@ sub render {
         my $output = $self->recaptcha_instance->get_html(@args, $err);
         return $self->wrap_field($result, $output);
     } else {        
-        my $security_code = $self->security_code;
+        my $security_code = $self->encrypt_hex($self->public_key);
         return <<"END";
         <input type='hidden' name='recaptcha_response_field' value='$security_code' />
         <input type='hidden' name='recaptcha_already_validated' value='1' />
