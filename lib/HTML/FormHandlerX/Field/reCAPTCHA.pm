@@ -99,11 +99,6 @@ The following is example usage.
 
 In your L<HTML::FormHandler> subclass:
 
-    has 'valid_recaptcha_security_code' => (
-        is=>'rw',
-        required=>1,
-    );
-
     has_field 'recaptcha' => (
         type=>'reCAPTCHA', 
         public_key=>'[YOUR PUBLIC KEY]',
@@ -113,11 +108,7 @@ In your L<HTML::FormHandler> subclass:
 
 Example L<Catalyst> controller:
 
-    ## Probably not the most secure code :)
-    my $form = MyApp::HTML::Forms::MyForm->new(
-      valid_recaptcha_security_code=>$c->session_id,
-    );
-
+    my $form = MyApp::HTML::Forms::MyForm->new;
     my $params = $c->request->body_parameters;
     if(my $result = $form->process(params=>$params) {
         ## The Form is totally valid. Go ahead with whatever is next.
@@ -142,17 +133,6 @@ The public key you get when you create an account on http://recaptcha.net/
 =head2 private_key
 
 The private key you get when you create an account on http://recaptcha.net/
-
-=head1 FORM ATTRIBUTES
-
-We support the following form attributes
-
-=head2 valid_recaptcha_security_code
-
-Expects a value.  The idea here is that if your client validates the reCAPTCHA
-but makes some other error, you don't want to keep displaying the reCAPTCHA.  So
-the first time a form validates the reCAPTCHA we replace it with a hidden field
-whose value is a secure code you can control.
 
 =head1 SEE ALSO
 
