@@ -13,7 +13,7 @@ our $AUTHORITY = 'cpan:JJNAPIORK';
 has '+widget' => ( default => 'reCAPTCHA' );
 has '+input_param' => ( default => 'recaptcha_response_field' );
 
-has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', required=>1);
+has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'use_ssl' => (is=>'rw', isa=>'Bool', required=>1, default=>0);
 has 'remote_address' => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'recaptcha_options' => (is=>'rw', isa=>'HashRef', required=>1, default=>sub{ +{} });
@@ -21,6 +21,28 @@ has 'recaptcha_message' => (is=>'rw', isa=>'Str', default=>'Error validating reC
 has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
 has 'encrypter' => (is=>'ro', init_arg=>undef, lazy_build=>1,
   handles=>[qw/encrypt_hex decrypt_hex/]);
+
+sub _build_public_key {
+    my $self = shift @_;
+    my $form = $self->form;
+    my $method = $self->name.'_public_key';
+    if ($form->can($method)) {
+        return $form->$method;
+    } else {
+        die "You either have to set the 'public_key' field option or defined a $method method in your form!";
+    }
+}
+
+sub _build_private_key {
+    my $self = shift @_;
+    my $form = $self->form;
+    my $method = $self->name.'_private_key';
+    if ($form->can($method)) {
+        return $form->$method;
+    } else {
+        die "You either have to set the 'private_key' field option or defined a $method method in your form!";
+    }
+}
 
 sub _build_encrypter {
     my $self = shift @_;
@@ -40,14 +62,6 @@ sub prepare_private_recaptcha_args {
     my $self = shift @_;
     return (
         $self->private_key,
-        $self->prepare_recaptcha_args,
-    );
-}
-
-sub prepare_public_recaptcha_args {
-    my $self = shift @_;
-    return (
-        $self->public_key,
         $self->prepare_recaptcha_args,
     );
 }
@@ -73,7 +87,7 @@ sub validate {
         ) { 
             return 1;
         } else {
-            $self->add_error("Previous reCAPTCHA validation lost.");
+            $self->add_error("Previous reCAPTCHA validation lost. Please try again.");
             return undef;
         }
     } else {
@@ -97,12 +111,13 @@ HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field
 
 The following is example usage.
 
-In your L<HTML::FormHandler> subclass:
+In your L<HTML::FormHandler> subclass, "MyApp::HTML::Forms::MyForm":
 
     has_field 'recaptcha' => (
         type=>'reCAPTCHA', 
         public_key=>'[YOUR PUBLIC KEY]',
         private_key=>'[YOUR PRIVATE KEY]',
+        recaptcha_message => "You're failed to prove your Humanity!",
         required=>1,
     ); 
 
@@ -121,6 +136,13 @@ Example L<Catalyst> controller:
 Uses L<Captcha::reCAPTCHA> to add a "Check if the agent is human" field.  You 
 will need an account from http://recaptcha.net/ to make this work.
 
+This is a thin wrapper on top of L<Captcha::reCAPTCHA> so you should review the
+docs for that.  However there's not much too it, just register for an account
+over at http://recaptcha.org and use it.
+
+When creating an account, I'd recommend creating two, one for testing or 
+development and is not domain locked, and another one for production which is.
+
 =head1 FIELD OPTIONS
 
 We support the following additional field options, over what is inherited from
@@ -133,6 +155,20 @@ The public key you get when you create an account on http://recaptcha.net/
 =head2 private_key
 
 The private key you get when you create an account on http://recaptcha.net/
+
+=head2 use_ssl
+
+control the 'use_ssl' option in L<Captcha::reCAPTCHA> when calling 'get_html'.
+
+=head2 recaptcha_options
+
+control the 'options' option in L<Captcha::reCAPTCHA> when calling 'get_html'.
+
+=head2 recaptcha_message
+
+What to show if the recaptcha fails.  Defaults to 'Error validating reCAPTCHA'.
+This error message is in addition to any other constraints you add, such as
+'required'.
 
 =head1 SEE ALSO
 
