@@ -170,6 +170,45 @@ What to show if the recaptcha fails.  Defaults to 'Error validating reCAPTCHA'.
 This error message is in addition to any other constraints you add, such as
 'required'.
 
+=head1 FORM METHODS
+
+The following methods or attributes can be set in the form which contains the
+recapcha field.
+
+=head2 $name_public_key or $name_private_key
+
+"$name" is the name you gave to the reCAPTCHA field (the word directy after the
+"has_field" command.
+
+You may wish to set your public key from a method or attribute contained from
+within the form.  This would make it easier to have one form class and use
+configuration tools, such as what L<Catalyst> offers, to set the pubic key.
+For example:
+
+    ## In my form "MyApp::Form::MyForm
+    has ['recaptcha_public_key', 'recapcha_private_key'] => (
+        is=>'ro', isa=>'Str', required=>1,
+    );
+    has_field 'recaptcha' => (
+        type=>'reCAPTCHA', 
+        recaptcha_message => "You're failed to prove your Humanity!",
+        required=>1,
+    ); 
+
+Then you might construct this in a L<Catalyst::Controller>:
+
+    my $form = MyApp::Form::MyForm->new(
+        recaptcha_public_key => $self->controller_public_key,
+        recaptcha_private_key => $self->controller_private_key,
+    );
+
+    ## 'process', etc.
+
+Then your controller could populate the attributes 'controller_public_key' and
+'controller_private_key' from your gloval L<Catalyst> Configuration, allowing
+you to use one set of keys in development and another for production, or even 
+use differnt keys for differnt forms if you wish.
+
 =head1 SEE ALSO
 
 The following modules or resources may be of interest.
