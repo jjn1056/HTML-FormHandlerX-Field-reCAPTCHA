@@ -7,7 +7,7 @@ use Crypt::CBC;
 use Moose;
 extends 'HTML::FormHandler::Field';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
 has '+widget' => ( default => 'reCAPTCHA' );
@@ -105,7 +105,7 @@ sub validate {
 
 =head1 NAME
 
-HTML::FormHandler::Field::reCAPTCHA - Add a Captcha::reCAPTCHA field
+HTML::FormHandlerX::Field::reCAPTCHA - A Captcha::reCAPTCHA field for HTML::FormHandler
 
 =head1 SYNOPSIS
 
@@ -134,14 +134,11 @@ Example L<Catalyst> controller:
 =head1 DESCRIPTION
 
 Uses L<Captcha::reCAPTCHA> to add a "Check if the agent is human" field.  You 
-will need an account from http://recaptcha.net/ to make this work.
+will need an account from L<http://recaptcha.net/> to make this work.
 
 This is a thin wrapper on top of L<Captcha::reCAPTCHA> so you should review the
 docs for that.  However there's not much too it, just register for an account
-over at http://recaptcha.org and use it.
-
-When creating an account, I'd recommend creating two, one for testing or 
-development and is not domain locked, and another one for production which is.
+over at L<http://recaptcha.net> and use it.
 
 =head1 FIELD OPTIONS
 
@@ -150,11 +147,11 @@ L<HTML::FormHandler::Field>
 
 =head2 public_key
 
-The public key you get when you create an account on http://recaptcha.net/
+The public key you get when you create an account on L<http://recaptcha.net/>
 
 =head2 private_key
 
-The private key you get when you create an account on http://recaptcha.net/
+The private key you get when you create an account on L<http://recaptcha.net/>
 
 =head2 use_ssl
 
@@ -169,6 +166,9 @@ control the 'options' option in L<Captcha::reCAPTCHA> when calling 'get_html'.
 What to show if the recaptcha fails.  Defaults to 'Error validating reCAPTCHA'.
 This error message is in addition to any other constraints you add, such as
 'required'.
+
+Please note that the recaptcha control also displays an error message internal
+to itself.
 
 =head1 FORM METHODS
 
@@ -186,10 +186,10 @@ configuration tools, such as what L<Catalyst> offers, to set the pubic key.
 For example:
 
     ## In my form "MyApp::Form::MyForm
-    has ['recaptcha_public_key', 'recapcha_private_key'] => (
+    has ['MY_recaptcha_public_key', 'MY_recapcha_private_key'] => (
         is=>'ro', isa=>'Str', required=>1,
     );
-    has_field 'recaptcha' => (
+    has_field 'MY_recaptcha' => (
         type=>'reCAPTCHA', 
         recaptcha_message => "You're failed to prove your Humanity!",
         required=>1,
@@ -198,16 +198,16 @@ For example:
 Then you might construct this in a L<Catalyst::Controller>:
 
     my $form = MyApp::Form::MyForm->new(
-        recaptcha_public_key => $self->controller_public_key,
-        recaptcha_private_key => $self->controller_private_key,
+        MY_recaptcha_public_key => $self->controller_public_key,
+        MY_recaptcha_private_key => $self->controller_private_key,
     );
 
     ## 'process', etc.
 
 Then your controller could populate the attributes 'controller_public_key' and
-'controller_private_key' from your gloval L<Catalyst> Configuration, allowing
+'controller_private_key' from your global L<Catalyst> configuration, allowing
 you to use one set of keys in development and another for production, or even 
-use differnt keys for differnt forms if you wish.
+use different keys for different forms if you wish.
 
 =head1 SEE ALSO
 
@@ -224,7 +224,7 @@ John Napiorkowski C<< <jjnapiork@cpan.org> >>
 Copyright 2010, John Napiorkowski C<< <jjnapiork@cpan.org> >>
 
 Original work sponsered by Shutterstock, LLC. 
-<<a href="http://code.shutterstock.com/">http://shutterstock.com</a>>
+L<http://shutterstock.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
