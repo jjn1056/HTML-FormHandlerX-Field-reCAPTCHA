@@ -8,3 +8,6 @@ Revision History for HTML-FormHandlerX-Field-reCAPTCHA
     -- Fixed some POD errors
     -- Fixed incorrect POD name declaration
 
+0.03 23 February 2010
+    -- fixed incorrect repository link
+

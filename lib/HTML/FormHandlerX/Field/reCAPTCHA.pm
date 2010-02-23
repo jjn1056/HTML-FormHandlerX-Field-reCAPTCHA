@@ -7,7 +7,7 @@ use Crypt::CBC;
 use Moose;
 extends 'HTML::FormHandler::Field';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
 has '+widget' => ( default => 'reCAPTCHA' );

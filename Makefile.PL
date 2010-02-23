@@ -4,7 +4,7 @@ use warnings;
 use strict;
  
 all_from 'lib/HTML/FormHandlerX/Field/reCAPTCHA.pm';
-repository 'git://github.com/jjn1056/Test-DBIx-Class.git'; 
+repository 'git://github.com/jjn1056/HTML-FormHandlerX-Field-reCAPTCHA.git'; 
 
 requires 'HTML::FormHandler' => '0.30002';
 requires 'Crypt::CBC' => '2.30';
