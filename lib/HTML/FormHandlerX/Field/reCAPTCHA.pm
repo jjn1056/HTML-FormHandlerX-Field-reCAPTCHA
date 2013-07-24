@@ -7,7 +7,7 @@ use Crypt::CBC;
 use Moose;
 extends 'HTML::FormHandler::Field';
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $AUTHORITY = 'cpan:JJNAPIORK';
 
 has '+widget' => ( default => 'reCAPTCHA' );
@@ -219,9 +219,13 @@ L<HTML::FormHandler>, L<Captch::reCAPTCHA>
 
 John Napiorkowski C<< <jjnapiork@cpan.org> >>
 
+=head1 CONTRIBUTORS
+
+Ferruccio Zamuner (ferz)
+
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2010, John Napiorkowski C<< <jjnapiork@cpan.org> >>
+Copyright 2013, John Napiorkowski C<< <jjnapiork@cpan.org> >>
 
 Original work sponsered by Shutterstock, LLC. 
 L<http://shutterstock.com>
