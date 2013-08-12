@@ -57,6 +57,23 @@ ok($form->field('recaptcha')->render eq $expected, 'recaptcha render OK') || dia
 
 like($form->field('recaptcha')->render,qr/k=zio\+pino/, 'recaptcha public_key OK') || diag($form->field('recaptcha')->render);
 
-exit;
+my $form1 = Test::reCAPTCHA->new(inactive=>['recaptcha'],recaptcha_public_key=>$public_key,recaptcha_private_key=>$private_key);
+
+ok($form1, 'get form without recaptcha');
+
+TODO: {
+    local $TODO = "recaptcha doesn't seem inactivable";
+    eval {
+	ok($form1->process(params => {}), "process form with recaptcha inactive");
+    };
+    eval {
+	ok($form1->render, "OK, render form with recaptcha inactive");
+    };
+}
+
+TODO1: {    
+    $TODO = "form with recaptcha doesn't render if keys are given at runtime";
+    ok($form->render, "Fixed form with recaptcha and keys given at runtime");
+}
 
 1;
