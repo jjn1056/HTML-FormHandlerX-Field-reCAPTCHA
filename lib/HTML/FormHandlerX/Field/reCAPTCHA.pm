@@ -3,6 +3,7 @@ package HTML::FormHandlerX::Field::reCAPTCHA;
 use 5.008;
 use Captcha::reCAPTCHA;
 use Crypt::CBC;
+use Carp;
 
 use Moose;
 extends 'HTML::FormHandler::Field';
@@ -15,7 +16,6 @@ has '+input_param' => ( default => 'recaptcha_response_field' );
 
 has [qw/public_key private_key/] => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'use_ssl' => (is=>'rw', isa=>'Bool', required=>1, default=>0);
-has 'remote_address' => (is=>'rw', isa=>'Str', lazy_build=>1);
 has 'recaptcha_options' => (is=>'rw', isa=>'HashRef', required=>1, default=>sub{ +{} });
 has 'recaptcha_message' => (is=>'rw', isa=>'Str', default=>'Error validating reCAPTCHA');
 has 'recaptcha_instance' => (is=>'ro', init_arg=>undef, lazy_build=>1);
@@ -50,8 +50,14 @@ sub _build_encrypter {
     return Crypt::CBC->new(-key=>$key,-cipher=>"Blowfish");   
 }
 
-sub _build_remote_address {
-    $ENV{REMOTE_ADDR};
+sub remote_address {
+    my $self = shift @_;
+
+    my $remote_addr = $self->form->params->{REMOTE_ADDR} || $ENV{REMOTE_ADDR};
+    croak 'REMOTE_ADDR must be set in the params hash for process()' .
+        'or in $ENV{REMOTE_ADDR}.' unless $remote_addr;
+
+    return $remote_addr;
 }
 
 sub _build_recaptcha_instance {
@@ -125,6 +131,9 @@ Example L<Catalyst> controller:
 
     my $form = MyApp::HTML::Forms::MyForm->new;
     my $params = $c->request->body_parameters;
+    ## REMOTE_ADDR must be passed with params
+    ## or available in $ENV{REMOTE_ADDR}
+    $params->{REMOTE_ADDR} = $c->req->address;
     if(my $result = $form->process(params=>$params) {
         ## The Form is totally valid. Go ahead with whatever is next.
     } else {
